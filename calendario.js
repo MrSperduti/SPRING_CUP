@@ -1,19 +1,30 @@
+fetch('dati.json')
+    .then(response => response.json())
+    .then(data => {
+        const partite = data.partite;
+        const calendarioDiv = document.getElementById('calendario');
+        const giornate = {};
+        
+        partite.forEach(partita => {
+            if (!giornate[partita.giornata]) {
+                giornate[partita.giornata] = [];
+            }
+            giornate[partita.giornata].push(partita);
+        });
 
-async function loadCalendar() {
-  const cat = new URLSearchParams(location.search).get('categoria');
-  const res = await fetch('dati.json');
-  const dati = await res.json();
-  const div = document.getElementById('calendario');
-  (dati[cat]?.partite || []).forEach(p => {
-    const card = document.createElement('div');
-    card.innerHTML = `
-      <h3>${p.squadraA} vs ${p.squadraB}</h3>
-      <p>🗓️ ${p.data || ''} ⏰ ${p.orario || ''} 🏟️ ${p.campo || ''}</p>
-      ${p.golA != null && p.golB != null ? `<p><strong>Risultato:</strong> ${p.golA} - ${p.golB}</p>` : ''}
-      ${p.girone ? `<p><strong>Girone:</strong> ${p.girone}</p>` : ''}
-    `;
-    card.className = 'container';
-    div.appendChild(card);
-  });
-}
-document.addEventListener('DOMContentLoaded', loadCalendar);
+        for (let giornata in giornate) {
+            const giornataDiv = document.createElement('div');
+            giornataDiv.id = `giornata-${giornata}`;
+            const giornataTitle = document.createElement('h3');
+            giornataTitle.textContent = `Giornata ${giornata}`;
+            giornataDiv.appendChild(giornataTitle);
+
+            giornate[giornata].forEach(partita => {
+                const partitaDiv = document.createElement('div');
+                partitaDiv.textContent = `${partita.data} - ${partita.squadra1} vs ${partita.squadra2} (${partita.golSquadra1} - ${partita.golSquadra2})`;
+                giornataDiv.appendChild(partitaDiv);
+            });
+
+            calendarioDiv.appendChild(giornataDiv);
+        }
+    });
