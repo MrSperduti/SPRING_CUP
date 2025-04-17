@@ -3,100 +3,261 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Editor Torneo</title>
+  <title>Editor Avanzato Torneo</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    textarea { width: 100%; min-height: 40px; margin-top: 5px; }
+    .section { margin-top: 40px; }
+    .item { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; background: #fff; }
+    .item h4 { margin-top: 0; }
+    .actions button { margin-right: 10px; }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h2 style="text-align:center">Editor Torneo</h2>
+    <h2 style="text-align:center">Editor Avanzato Torneo</h2>
 
-    <h3>Aggiungi Partita Fase a Gironi</h3>
-    <form id="form-partita">
-      <input type="text" placeholder="Categoria" id="categoria" required>
-      <input type="number" placeholder="Giornata" id="giornata" required>
-      <input type="text" placeholder="Squadra A" id="squadraA" required>
-      <input type="text" placeholder="Squadra B" id="squadraB" required>
-      <input type="text" placeholder="Data" id="data">
-      <input type="text" placeholder="Orario" id="orario">
-      <input type="text" placeholder="Campo" id="campo">
-      <input type="text" placeholder="Girone (opzionale)" id="girone">
-      <input type="text" placeholder="Miglior Portiere" id="portiere">
-      <input type="text" placeholder="Miglior Giocatore" id="giocatore">
-      <textarea placeholder="Marcatori (formato: Nome1:2, Nome2:1)" id="marcatori"></textarea>
-      <button type="submit">➕ Aggiungi Partita</button>
-    </form>
+    <div class="section">
+      <h3>📂 Carica file dati.json</h3>
+      <input type="file" id="fileInput">
+    </div>
 
-    <h3>Aggiungi Partita Fase Finale</h3>
-    <form id="form-finale">
-      <input type="text" placeholder="Categoria" id="finale-categoria" required>
-      <input type="text" placeholder="Fase (es. Semifinale 1)" id="fase" required>
-      <input type="text" placeholder="Squadra A" id="finale-squadraA" required>
-      <input type="text" placeholder="Squadra B" id="finale-squadraB" required>
-      <input type="text" placeholder="Data" id="finale-data">
-      <input type="text" placeholder="Orario" id="finale-orario">
-      <input type="text" placeholder="Campo" id="finale-campo">
-      <input type="text" placeholder="Miglior Portiere" id="finale-portiere">
-      <input type="text" placeholder="Miglior Giocatore" id="finale-giocatore">
-      <textarea placeholder="Marcatori (formato: Nome1:2, Nome2:1)" id="finale-marcatori"></textarea>
-      <button type="submit">🏆 Aggiungi Finale</button>
-    </form>
+    <div class="section">
+      <h3>📋 Seleziona Categoria</h3>
+      <select id="selectCategoria"></select>
+    </div>
 
-    <h3>📤 Esporta JSON</h3>
-    <button id="export">💾 Scarica dati.json</button>
+    <div class="section">
+      <h3>⚙️ Gestione Partite</h3>
+      <div id="listaPartite"></div>
+      <button onclick="aggiungiPartita()">➕ Aggiungi Nuova Partita</button>
+    </div>
+
+    <div class="section">
+      <h3>🏆 Gestione Finali</h3>
+      <div id="listaFinali"></div>
+      <button onclick="aggiungiFinale()">➕ Aggiungi Finale</button>
+    </div>
+
+    <div class="section">
+      <h3>👥 Gestione Gironi</h3>
+      <div id="listaGironi"></div>
+      <button onclick="aggiungiGirone()">➕ Aggiungi Girone</button>
+    </div>
+
+    <div class="section">
+      <button onclick="esporta()">💾 Esporta dati.json</button>
+    </div>
   </div>
 
   <script>
     let dati = {};
+    let categoriaSelezionata = '';
 
-    function parseMarcatori(txt) {
-      return txt.split(",").map(m => {
-        const [nome, gol] = m.trim().split(":");
-        return nome && gol ? { nome, gol: parseInt(gol) } : null;
-      }).filter(Boolean);
+    document.getElementById("fileInput").addEventListener("change", e => {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          dati = JSON.parse(event.target.result);
+          aggiornaCategorie();
+          alert("File caricato con successo!");
+        } catch (err) {
+          alert("Errore nel caricamento del file.");
+        }
+      };
+      reader.readAsText(e.target.files[0]);
+    });
+
+    function aggiornaCategorie() {
+      const select = document.getElementById("selectCategoria");
+      select.innerHTML = "";
+      Object.keys(dati).forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = cat;
+        select.appendChild(opt);
+      });
+      if (select.options.length > 0) {
+        select.selectedIndex = 0;
+        categoriaSelezionata = select.value;
+        aggiornaVista();
+      }
+      select.onchange = () => {
+        categoriaSelezionata = select.value;
+        aggiornaVista();
+      };
     }
 
-    document.getElementById('form-partita').addEventListener('submit', e => {
-      e.preventDefault();
-      const cat = document.getElementById('categoria').value;
-      const partita = {
-        giornata: parseInt(document.getElementById('giornata').value),
-        squadraA: document.getElementById('squadraA').value,
-        squadraB: document.getElementById('squadraB').value,
-        data: document.getElementById('data').value,
-        orario: document.getElementById('orario').value,
-        campo: document.getElementById('campo').value,
-        girone: document.getElementById('girone').value,
-        portiere: document.getElementById('portiere').value,
-        giocatore: document.getElementById('giocatore').value,
-        marcatori: parseMarcatori(document.getElementById('marcatori').value)
-      };
-      if (!dati[cat]) dati[cat] = { partite: [], gironi: {}, finali: [] };
-      dati[cat].partite.push(partita);
-      e.target.reset();
-      alert("Partita aggiunta!");
-    });
+    function aggiornaVista() {
+      renderPartite();
+      renderFinali();
+      renderGironi();
+    }
 
-    document.getElementById('form-finale').addEventListener('submit', e => {
-      e.preventDefault();
-      const cat = document.getElementById('finale-categoria').value;
-      const finale = {
-        fase: document.getElementById('fase').value,
-        squadraA: document.getElementById('finale-squadraA').value,
-        squadraB: document.getElementById('finale-squadraB').value,
-        data: document.getElementById('finale-data').value,
-        orario: document.getElementById('finale-orario').value,
-        campo: document.getElementById('finale-campo').value,
-        portiere: document.getElementById('finale-portiere').value,
-        giocatore: document.getElementById('finale-giocatore').value,
-        marcatori: parseMarcatori(document.getElementById('finale-marcatori').value)
-      };
-      if (!dati[cat]) dati[cat] = { partite: [], gironi: {}, finali: [] };
-      dati[cat].finali.push(finale);
-      e.target.reset();
-      alert("Finale aggiunta!");
-    });
+    function creaInput(value = "", placeholder = "") {
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = placeholder;
+      input.value = value;
+      return input;
+    }
 
-    document.getElementById('export').addEventListener('click', () => {
+    function creaTextarea(value = "", placeholder = "") {
+      const ta = document.createElement("textarea");
+      ta.placeholder = placeholder;
+      ta.value = value;
+      return ta;
+    }
+
+    function creaBottoneTesto(label, onclick) {
+      const btn = document.createElement("button");
+      btn.textContent = label;
+      btn.onclick = onclick;
+      return btn;
+    }
+
+    function renderPartite() {
+      const container = document.getElementById("listaPartite");
+      container.innerHTML = "";
+      const partite = dati[categoriaSelezionata]?.partite || [];
+      partite.forEach((p, index) => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `<h4>Partita ${index + 1}</h4>`;
+        const inputs = {
+          giornata: creaInput(p.giornata, "Giornata"),
+          squadraA: creaInput(p.squadraA, "Squadra A"),
+          squadraB: creaInput(p.squadraB, "Squadra B"),
+          data: creaInput(p.data, "Data"),
+          orario: creaInput(p.orario, "Orario"),
+          campo: creaInput(p.campo, "Campo"),
+          girone: creaInput(p.girone, "Girone"),
+          portiere: creaInput(p.portiere, "Miglior Portiere"),
+          giocatore: creaInput(p.giocatore, "Miglior Giocatore"),
+          marcatori: creaTextarea((p.marcatori || []).map(m => `${m.nome}:${m.gol}`).join(", "), "Marcatori")
+        };
+        Object.values(inputs).forEach(i => div.appendChild(i));
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        actions.appendChild(creaBottoneTesto("💾 Salva", () => {
+          dati[categoriaSelezionata].partite[index] = {
+            giornata: parseInt(inputs.giornata.value),
+            squadraA: inputs.squadraA.value,
+            squadraB: inputs.squadraB.value,
+            data: inputs.data.value,
+            orario: inputs.orario.value,
+            campo: inputs.campo.value,
+            girone: inputs.girone.value,
+            portiere: inputs.portiere.value,
+            giocatore: inputs.giocatore.value,
+            marcatori: inputs.marcatori.value.split(",").map(m => {
+              const [nome, gol] = m.trim().split(":");
+              return { nome, gol: parseInt(gol) };
+            }).filter(m => m.nome && !isNaN(m.gol))
+          };
+          alert("Partita aggiornata.");
+        }));
+        actions.appendChild(creaBottoneTesto("🗑️ Cancella", () => {
+          dati[categoriaSelezionata].partite.splice(index, 1);
+          aggiornaVista();
+        }));
+        div.appendChild(actions);
+        container.appendChild(div);
+      });
+    }
+
+    function renderFinali() {
+      const container = document.getElementById("listaFinali");
+      container.innerHTML = "";
+      const finali = dati[categoriaSelezionata]?.finali || [];
+      finali.forEach((f, index) => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `<h4>${f.fase || 'Finale'} (${index + 1})</h4>`;
+        const inputs = {
+          fase: creaInput(f.fase, "Fase"),
+          squadraA: creaInput(f.squadraA, "Squadra A"),
+          squadraB: creaInput(f.squadraB, "Squadra B"),
+          data: creaInput(f.data, "Data"),
+          orario: creaInput(f.orario, "Orario"),
+          campo: creaInput(f.campo, "Campo"),
+          portiere: creaInput(f.portiere, "Miglior Portiere"),
+          giocatore: creaInput(f.giocatore, "Miglior Giocatore"),
+          marcatori: creaTextarea((f.marcatori || []).map(m => `${m.nome}:${m.gol}`).join(", "), "Marcatori")
+        };
+        Object.values(inputs).forEach(i => div.appendChild(i));
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        actions.appendChild(creaBottoneTesto("💾 Salva", () => {
+          dati[categoriaSelezionata].finali[index] = {
+            fase: inputs.fase.value,
+            squadraA: inputs.squadraA.value,
+            squadraB: inputs.squadraB.value,
+            data: inputs.data.value,
+            orario: inputs.orario.value,
+            campo: inputs.campo.value,
+            portiere: inputs.portiere.value,
+            giocatore: inputs.giocatore.value,
+            marcatori: inputs.marcatori.value.split(",").map(m => {
+              const [nome, gol] = m.trim().split(":");
+              return { nome, gol: parseInt(gol) };
+            }).filter(m => m.nome && !isNaN(m.gol))
+          };
+          alert("Finale aggiornata.");
+        }));
+        actions.appendChild(creaBottoneTesto("🗑️ Cancella", () => {
+          dati[categoriaSelezionata].finali.splice(index, 1);
+          aggiornaVista();
+        }));
+        div.appendChild(actions);
+        container.appendChild(div);
+      });
+    }
+
+    function renderGironi() {
+      const container = document.getElementById("listaGironi");
+      container.innerHTML = "";
+      const gironi = dati[categoriaSelezionata]?.gironi || {};
+      Object.entries(gironi).forEach(([nome, squadre]) => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `<h4>Girone ${nome}</h4>`;
+        const inputNome = creaInput(nome, "Nome Girone");
+        const inputSquadre = creaTextarea(squadre.join(", "), "Squadre separate da virgola");
+        div.appendChild(inputNome);
+        div.appendChild(inputSquadre);
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        actions.appendChild(creaBottoneTesto("💾 Salva", () => {
+          delete gironi[nome];
+          gironi[inputNome.value] = inputSquadre.value.split(",").map(s => s.trim()).filter(Boolean);
+          aggiornaVista();
+        }));
+        actions.appendChild(creaBottoneTesto("🗑️ Cancella", () => {
+          delete gironi[nome];
+          aggiornaVista();
+        }));
+        div.appendChild(actions);
+        container.appendChild(div);
+      });
+    }
+
+    function aggiungiPartita() {
+      dati[categoriaSelezionata].partite.push({});
+      aggiornaVista();
+    }
+
+    function aggiungiFinale() {
+      dati[categoriaSelezionata].finali.push({});
+      aggiornaVista();
+    }
+
+    function aggiungiGirone() {
+      dati[categoriaSelezionata].gironi["Nuovo"] = [];
+      aggiornaVista();
+    }
+
+    function esporta() {
       const blob = new Blob([JSON.stringify(dati, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -104,7 +265,7 @@
       a.download = "dati.json";
       a.click();
       URL.revokeObjectURL(url);
-    });
+    }
   </script>
 </body>
 </html>
