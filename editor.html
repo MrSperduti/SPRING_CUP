@@ -353,7 +353,19 @@
       a.click();
       URL.revokeObjectURL(url);
     }
-  </script>
+  
+// Carica automaticamente dati.json se presente
+window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const res = await fetch('dati.json');
+    dati = await res.json();
+    aggiornaCategorie();
+  } catch (e) {
+    console.warn("dati.json non caricato automaticamente.");
+  }
+});
+
+</script>
 </body>
 </html>
 
