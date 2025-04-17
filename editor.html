@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Editor Torneo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2 style="text-align:center">Editor Torneo</h2>
+
+    <h3>Aggiungi Partita Fase a Gironi</h3>
+    <form id="form-partita">
+      <input type="text" placeholder="Categoria" id="categoria" required>
+      <input type="number" placeholder="Giornata" id="giornata" required>
+      <input type="text" placeholder="Squadra A" id="squadraA" required>
+      <input type="text" placeholder="Squadra B" id="squadraB" required>
+      <input type="text" placeholder="Data" id="data">
+      <input type="text" placeholder="Orario" id="orario">
+      <input type="text" placeholder="Campo" id="campo">
+      <input type="text" placeholder="Girone (opzionale)" id="girone">
+      <button type="submit">➕ Aggiungi Partita</button>
+    </form>
+
+    <h3>Aggiungi Partita Fase Finale</h3>
+    <form id="form-finale">
+      <input type="text" placeholder="Categoria" id="finale-categoria" required>
+      <input type="text" placeholder="Fase (es. Semifinale 1)" id="fase" required>
+      <input type="text" placeholder="Squadra A" id="finale-squadraA" required>
+      <input type="text" placeholder="Squadra B" id="finale-squadraB" required>
+      <input type="text" placeholder="Data" id="finale-data">
+      <input type="text" placeholder="Orario" id="finale-orario">
+      <input type="text" placeholder="Campo" id="finale-campo">
+      <button type="submit">🏆 Aggiungi Finale</button>
+    </form>
+
+    <h3>📤 Esporta JSON</h3>
+    <button id="export">💾 Scarica dati.json</button>
+  </div>
+
+  <script>
+    let dati = {};
+
+    document.getElementById('form-partita').addEventListener('submit', e => {
+      e.preventDefault();
+      const cat = document.getElementById('categoria').value;
+      const partita = {
+        giornata: parseInt(document.getElementById('giornata').value),
+        squadraA: document.getElementById('squadraA').value,
+        squadraB: document.getElementById('squadraB').value,
+        data: document.getElementById('data').value,
+        orario: document.getElementById('orario').value,
+        campo: document.getElementById('campo').value,
+        girone: document.getElementById('girone').value
+      };
+      if (!dati[cat]) dati[cat] = { partite: [], gironi: {}, finali: [] };
+      dati[cat].partite.push(partita);
+      e.target.reset();
+      alert("Partita aggiunta!");
+    });
+
+    document.getElementById('form-finale').addEventListener('submit', e => {
+      e.preventDefault();
+      const cat = document.getElementById('finale-categoria').value;
+      const finale = {
+        fase: document.getElementById('fase').value,
+        squadraA: document.getElementById('finale-squadraA').value,
+        squadraB: document.getElementById('finale-squadraB').value,
+        data: document.getElementById('finale-data').value,
+        orario: document.getElementById('finale-orario').value,
+        campo: document.getElementById('finale-campo').value
+      };
+      if (!dati[cat]) dati[cat] = { partite: [], gironi: {}, finali: [] };
+      dati[cat].finali.push(finale);
+      e.target.reset();
+      alert("Finale aggiunta!");
+    });
+
+    document.getElementById('export').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(dati, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "dati.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
