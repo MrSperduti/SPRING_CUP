@@ -18,34 +18,52 @@
     <h2 style="text-align:center">Editor Avanzato Torneo</h2>
 
     <div class="section">
+<h3>📄 Anteprima dati.json</h3>
+<pre id="jsonPreview" style="white-space: pre-wrap; background:#eee; padding:10px; max-height:300px; overflow:auto;"></pre>
+
       <h3>📂 Carica file dati.json</h3>
       <input type="file" id="fileInput">
     </div>
 
     <div class="section">
+<h3>📄 Anteprima dati.json</h3>
+<pre id="jsonPreview" style="white-space: pre-wrap; background:#eee; padding:10px; max-height:300px; overflow:auto;"></pre>
+
       <h3>📋 Seleziona Categoria</h3>
       <select id="selectCategoria"></select>
     </div>
 
     <div class="section">
+<h3>📄 Anteprima dati.json</h3>
+<pre id="jsonPreview" style="white-space: pre-wrap; background:#eee; padding:10px; max-height:300px; overflow:auto;"></pre>
+
       <h3>⚙️ Gestione Partite</h3>
       <div id="listaPartite"></div>
       <button onclick="aggiungiPartita()">➕ Aggiungi Nuova Partita</button>
     </div>
 
     <div class="section">
+<h3>📄 Anteprima dati.json</h3>
+<pre id="jsonPreview" style="white-space: pre-wrap; background:#eee; padding:10px; max-height:300px; overflow:auto;"></pre>
+
       <h3>🏆 Gestione Finali</h3>
       <div id="listaFinali"></div>
       <button onclick="aggiungiFinale()">➕ Aggiungi Finale</button>
     </div>
 
     <div class="section">
+<h3>📄 Anteprima dati.json</h3>
+<pre id="jsonPreview" style="white-space: pre-wrap; background:#eee; padding:10px; max-height:300px; overflow:auto;"></pre>
+
       <h3>👥 Gestione Gironi</h3>
       <div id="listaGironi"></div>
       <button onclick="aggiungiGirone()">➕ Aggiungi Girone</button>
     </div>
 
     <div class="section">
+<h3>📄 Anteprima dati.json</h3>
+<pre id="jsonPreview" style="white-space: pre-wrap; background:#eee; padding:10px; max-height:300px; overflow:auto;"></pre>
+
       <button onclick="esporta()">💾 Esporta dati.json</button>
     </div>
   </div>
@@ -89,6 +107,7 @@
     }
 
     function aggiornaVista() {
+  aggiornaAnteprima();
       
       renderPartite();
 
@@ -337,3 +356,8 @@
   </script>
 </body>
 </html>
+
+
+function aggiornaAnteprima() {
+  document.getElementById('jsonPreview').textContent = JSON.stringify(dati, null, 2);
+}
