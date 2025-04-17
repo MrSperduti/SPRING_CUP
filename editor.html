@@ -89,7 +89,75 @@
     }
 
     function aggiornaVista() {
+      
       renderPartite();
+
+      // Override renderPartite per raggruppare per giornata
+      function renderPartite() {
+        const container = document.getElementById("listaPartite");
+        container.innerHTML = "";
+        const partite = dati[categoriaSelezionata]?.partite || [];
+
+        // Raggruppa per giornata
+        const giornate = {};
+        partite.forEach((p, i) => {
+          const g = p.giornata || 0;
+          if (!giornate[g]) giornate[g] = [];
+          giornate[g].push({ partita: p, index: i });
+        });
+
+        Object.keys(giornate).sort((a, b) => a - b).forEach(g => {
+          const titolo = document.createElement("h4");
+          titolo.textContent = "Giornata " + g;
+          container.appendChild(titolo);
+
+          giornate[g].forEach(({ partita: p, index }) => {
+            const div = document.createElement("div");
+            div.className = "item";
+            const inputs = {
+              giornata: creaInput(p.giornata, "Giornata"),
+              squadraA: creaInput(p.squadraA, "Squadra A"),
+              squadraB: creaInput(p.squadraB, "Squadra B"),
+              data: creaInput(p.data, "Data"),
+              orario: creaInput(p.orario, "Orario"),
+              campo: creaInput(p.campo, "Campo"),
+              girone: creaInput(p.girone, "Girone"),
+              portiere: creaInput(p.portiere, "Miglior Portiere"),
+              giocatore: creaInput(p.giocatore, "Miglior Giocatore"),
+              marcatori: creaTextarea((p.marcatori || []).map(m => `${m.nome}:${m.gol}`).join(", "), "Marcatori")
+            };
+            Object.values(inputs).forEach(i => div.appendChild(i));
+            const actions = document.createElement("div");
+            actions.className = "actions";
+            actions.appendChild(creaBottoneTesto("💾 Salva", () => {
+              dati[categoriaSelezionata].partite[index] = {
+                giornata: parseInt(inputs.giornata.value),
+                squadraA: inputs.squadraA.value,
+                squadraB: inputs.squadraB.value,
+                data: inputs.data.value,
+                orario: inputs.orario.value,
+                campo: inputs.campo.value,
+                girone: inputs.girone.value,
+                portiere: inputs.portiere.value,
+                giocatore: inputs.giocatore.value,
+                marcatori: inputs.marcatori.value.split(",").map(m => {
+                  const [nome, gol] = m.trim().split(":");
+                  return { nome, gol: parseInt(gol) };
+                }).filter(m => m.nome && !isNaN(m.gol))
+              };
+              alert("Partita aggiornata.");
+              aggiornaVista();
+            }));
+            actions.appendChild(creaBottoneTesto("🗑️ Cancella", () => {
+              dati[categoriaSelezionata].partite.splice(index, 1);
+              aggiornaVista();
+            }));
+            div.appendChild(actions);
+            container.appendChild(div);
+          });
+        });
+      }
+    
       renderFinali();
       renderGironi();
     }
