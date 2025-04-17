@@ -20,6 +20,9 @@
       <input type="text" placeholder="Orario" id="orario">
       <input type="text" placeholder="Campo" id="campo">
       <input type="text" placeholder="Girone (opzionale)" id="girone">
+      <input type="text" placeholder="Miglior Portiere" id="portiere">
+      <input type="text" placeholder="Miglior Giocatore" id="giocatore">
+      <textarea placeholder="Marcatori (formato: Nome1:2, Nome2:1)" id="marcatori"></textarea>
       <button type="submit">➕ Aggiungi Partita</button>
     </form>
 
@@ -32,6 +35,9 @@
       <input type="text" placeholder="Data" id="finale-data">
       <input type="text" placeholder="Orario" id="finale-orario">
       <input type="text" placeholder="Campo" id="finale-campo">
+      <input type="text" placeholder="Miglior Portiere" id="finale-portiere">
+      <input type="text" placeholder="Miglior Giocatore" id="finale-giocatore">
+      <textarea placeholder="Marcatori (formato: Nome1:2, Nome2:1)" id="finale-marcatori"></textarea>
       <button type="submit">🏆 Aggiungi Finale</button>
     </form>
 
@@ -41,6 +47,13 @@
 
   <script>
     let dati = {};
+
+    function parseMarcatori(txt) {
+      return txt.split(",").map(m => {
+        const [nome, gol] = m.trim().split(":");
+        return nome && gol ? { nome, gol: parseInt(gol) } : null;
+      }).filter(Boolean);
+    }
 
     document.getElementById('form-partita').addEventListener('submit', e => {
       e.preventDefault();
@@ -52,7 +65,10 @@
         data: document.getElementById('data').value,
         orario: document.getElementById('orario').value,
         campo: document.getElementById('campo').value,
-        girone: document.getElementById('girone').value
+        girone: document.getElementById('girone').value,
+        portiere: document.getElementById('portiere').value,
+        giocatore: document.getElementById('giocatore').value,
+        marcatori: parseMarcatori(document.getElementById('marcatori').value)
       };
       if (!dati[cat]) dati[cat] = { partite: [], gironi: {}, finali: [] };
       dati[cat].partite.push(partita);
@@ -69,7 +85,10 @@
         squadraB: document.getElementById('finale-squadraB').value,
         data: document.getElementById('finale-data').value,
         orario: document.getElementById('finale-orario').value,
-        campo: document.getElementById('finale-campo').value
+        campo: document.getElementById('finale-campo').value,
+        portiere: document.getElementById('finale-portiere').value,
+        giocatore: document.getElementById('finale-giocatore').value,
+        marcatori: parseMarcatori(document.getElementById('finale-marcatori').value)
       };
       if (!dati[cat]) dati[cat] = { partite: [], gironi: {}, finali: [] };
       dati[cat].finali.push(finale);

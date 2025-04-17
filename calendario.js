@@ -8,7 +8,6 @@ async function loadCalendar() {
   const partite = dati[cat]?.partite || [];
   const finali = dati[cat]?.finali || [];
 
-  // Raggruppa partite per giornata
   const giornate = {};
   partite.forEach(p => {
     if (!p.giornata) return;
@@ -16,14 +15,14 @@ async function loadCalendar() {
     giornate[p.giornata].push(p);
   });
 
-  // Ordina per giornata
   Object.keys(giornate).sort((a, b) => a - b).forEach(giornata => {
     const sezione = document.createElement('div');
     sezione.innerHTML = `<h3>🗓️ Giornata ${giornata}</h3>`;
     const table = document.createElement('table');
-    table.innerHTML = '<tr><th>Squadra A</th><th>Squadra B</th><th>Data</th><th>Ora</th><th>Campo</th><th>Risultato</th><th>Girone</th></tr>';
+    table.innerHTML = '<tr><th>Squadra A</th><th>Squadra B</th><th>Data</th><th>Ora</th><th>Campo</th><th>Risultato</th><th>Girone</th><th>Portiere</th><th>Giocatore</th><th>Marcatori</th></tr>';
     giornate[giornata].forEach(p => {
       const row = document.createElement('tr');
+      const marcatori = (p.marcatori || []).map(m => `${m.nome} (${m.gol})`).join(", ");
       row.innerHTML = `
         <td>${p.squadraA}</td>
         <td>${p.squadraB}</td>
@@ -32,6 +31,9 @@ async function loadCalendar() {
         <td>${p.campo || ''}</td>
         <td>${p.golA != null && p.golB != null ? `${p.golA} - ${p.golB}` : ''}</td>
         <td>${p.girone || ''}</td>
+        <td>${p.portiere || ''}</td>
+        <td>${p.giocatore || ''}</td>
+        <td>${marcatori}</td>
       `;
       table.appendChild(row);
     });
@@ -39,13 +41,13 @@ async function loadCalendar() {
     div.appendChild(sezione);
   });
 
-  // Sezione fase finale
   if (finali.length > 0) {
     const finaleDiv = document.createElement('div');
     finaleDiv.innerHTML = `<h3>🏆 Fase Finale</h3>`;
     const table = document.createElement('table');
-    table.innerHTML = '<tr><th>Fase</th><th>Squadra A</th><th>Squadra B</th><th>Data</th><th>Ora</th><th>Campo</th></tr>';
+    table.innerHTML = '<tr><th>Fase</th><th>Squadra A</th><th>Squadra B</th><th>Data</th><th>Ora</th><th>Campo</th><th>Portiere</th><th>Giocatore</th><th>Marcatori</th></tr>';
     finali.forEach(f => {
+      const marcatori = (f.marcatori || []).map(m => `${m.nome} (${m.gol})`).join(", ");
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${f.fase}</td>
@@ -54,6 +56,9 @@ async function loadCalendar() {
         <td>${f.data || ''}</td>
         <td>${f.orario || ''}</td>
         <td>${f.campo || ''}</td>
+        <td>${f.portiere || ''}</td>
+        <td>${f.giocatore || ''}</td>
+        <td>${marcatori}</td>
       `;
       table.appendChild(row);
     });
